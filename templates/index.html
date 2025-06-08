@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gordis - Asistente Matemático</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --color-primary: #6de7b0;
+            --color-secondary: #2979ff;
+            --color-dark: #121212;
+            --color-darker: #0a0a0a;
+            --color-gray: #2c2c2c;
+            --color-light: #f0f0f0;
+            --color-error: #ff6b6b;
+            --color-success: #6de7b0;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--color-darker);
+            color: var(--color-light);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        #app-container {
+            background-color: var(--color-dark);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            width: 100%;
+            max-width: 900px;
+            height: 90vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .header {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            background-color: rgba(33, 33, 33, 0.8);
+            border-bottom: 1px solid var(--color-gray);
+        }
+        
+        .header img {
+            height: 60px;
+            width: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 15px;
+        }
+        
+        .header h1 {
+            color: var(--color-primary);
+            font-weight: 700;
+            font-size: 1.8rem;
+            letter-spacing: 0.5px;
+        }
+        
+        #history {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .message {
+            display: flex;
+            max-width: 90%;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .user-message {
+            align-self: flex-end;
+            background: linear-gradient(135deg, var(--color-secondary), #2962ff);
+            color: white;
+            border-radius: 18px 4px 18px 18px;
+        }
+        
+        .gordis-response {
+            align-self: flex-start;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: var(--color-light);
+            border-radius: 4px 18px 18px 18px;
+        }
+        
+        .message-content {
+            padding: 16px 20px;
+        }
+        
+        .message-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .message-icon img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .message-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .success {
+            color: var(--color-success);
+        }
+        
+        .error {
+            color: var(--color-error);
+        }
+        
+        .result-display {
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 12px 15px;
+            border-radius: 12px;
+            margin: 10px 0;
+            font-size: 1.3rem;
+            font-weight: 700;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .metadata {
+            display: flex;
+            gap: 15px;
+            font-size: 0.85rem;
+            color: #aaa;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .code-block {
+            background-color: #1a1a2e;
+            border-left: 4px solid var(--color-primary);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+            overflow-x: auto;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.95rem;
+        }
+        
+        #input-area {
+            display: flex;
+            padding: 15px;
+            background-color: rgba(33, 33, 33, 0.8);
+            border-top: 1px solid var(--color-gray);
+        }
+        
+        #input-container {
+            display: flex;
+            flex-grow: 1;
+            background-color: var(--color-gray);
+            border-radius: 30px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        #user-input {
+            flex-grow: 1;
+            padding: 16px 20px;
+            border: none;
+            background: transparent;
+            color: var(--color-light);
+            font-size: 1.1rem;
+            outline: none;
+        }
+        
+        #send-button {
+            background-color: var(--color-primary);
+            color: #000;
+            border: none;
+            padding: 0 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        #send-button:hover {
+            background-color: #4ad69c;
+        }
+        
+        #send-button:disabled {
+            background-color: #4a9b7a;
+            cursor: not-allowed;
+        }
+        
+        #loading-spinner {
+            display: none;
+            padding: 0 25px;
+            align-items: center;
+        }
+        
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid var(--color-primary);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 0 15px 15px;
+        }
+        
+        .suggestion-chip {
+            background-color: rgba(109, 231, 176, 0.15);
+            color: var(--color-primary);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .suggestion-chip:hover {
+            background-color: rgba(109, 231, 176, 0.25);
+        }
+        
+        @media (max-width: 768px) {
+            #app-container {
+                height: 95vh;
+                border-radius: 12px;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .message {
+                max-width: 95%;
+            }
+            
+            .message-icon {
+                min-width: 40px;
+                height: 40px;
+            }
+            
+            #send-button span {
+                display: none;
+            }
+        }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--color-gray);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body>
+    <div id="app-container">
+        <div class="header">
+            <img src="/static/img/512.png" alt="Logo Gordis">
+            <h1>Gordis - Asistente Matemático</h1>
+        </div>
+        
+        <div id="history">
+            <div class="message gordis-response">
+                <div class="message-icon">
+                    <img src="/static/img/192.png" alt="Gordis">
+                </div>
+                <div class="message-content">
+                    <div class="message-header">
+                        <strong>Gordis</strong>
+                    </div>
+                    <p>👋 ¡Hola! Soy Gordis, tu asistente matemático y científico.</p>
+                    <p>Puedes preguntarme operaciones como:</p>
+                    <ul style="padding-left: 20px; margin-top: 10px;">
+                        <li>Cálculos: <code>2+3*5</code>, <code>sqrt(16)</code></li>
+                        <li>Estadística: <code>media(5,10,15)</code></li>
+                        <li>Trigonométria: <code>sin(π/2)</code>, <code>cos(45 grados)</code></li>
+                        <li>Conversiones: <code>convertir 100 km a m</code></li>
+                        <li>Física: <code>0.5 * g * t² donde t=5</code></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="suggestions">
+            <div class="suggestion-chip">sin(π/2)</div>
+            <div class="suggestion-chip">5! + 3²</div>
+            <div class="suggestion-chip">media(10, 20, 30)</div>
+            <div class="suggestion-chip">convertir 100°F a °C</div>
+        </div>
+        
+        <div id="input-area">
+            <div id="input-container">
+                <input type="text" id="user-input" placeholder="Escribe tu consulta matemática..." autocomplete="off" autofocus>
+                <button id="send-button">
+                    <i class="fas fa-paper-plane"></i>
+                    <span>Enviar</span>
+                </button>
+            </div>
+            <div id="loading-spinner">
+                <div class="spinner"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            const history = $('#history');
+            const userInput = $('#user-input');
+            const sendButton = $('#send-button');
+            const spinner = $('#loading-spinner');
+            
+            // Scroll to bottom of history
+            function scrollToBottom() {
+                history.scrollTop(history[0].scrollHeight);
+            }
+            
+            // Escape HTML special characters
+            function escapeHtml(text) {
+                const map = {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#039;'
+                };
+                return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+            }
+            
+            // Format number for display
+            function formatNumber(num) {
+                if (num === null || num === undefined) return 'N/A';
+                
+                // Handle very large or small numbers
+                if (Math.abs(num) > 1e10 || (Math.abs(num) < 1e-4 && num !== 0)) {
+                    return num.toExponential(4);
+                }
+                
+                // Format with fixed decimals if float
+                if (Number.isInteger(num)) {
+                    return num.toString();
+                } else {
+                    // Show up to 6 decimal places but remove trailing zeros
+                    return parseFloat(num.toFixed(6)).toString();
+                }
+            }
+            
+            // Add message to history
+            function addMessage(content, isUser = false) {
+                const messageClass = isUser ? 'user-message' : 'gordis-response';
+                const icon = isUser ? 
+                    '<i class="fas fa-user"></i>' : 
+                    '<img src="/static/img/192.png" alt="Gordis">';
+                
+                const message = $(`
+                    <div class="message ${messageClass}">
+                        <div class="message-icon">${icon}</div>
+                        <div class="message-content">${content}</div>
+                    </div>
+                `);
+                
+                history.append(message);
+                scrollToBottom();
+            }
+            
+            // Handle send message
+            function sendMessage() {
+                const inputText = userInput.val().trim();
+                if (!inputText) return;
+                
+                // Add user message
+                addMessage(`<div class="message-header">Tú</div><p>${escapeHtml(inputText)}</p>`, true);
+                
+                // Clear input and disable button
+                userInput.val('');
+                sendButton.prop('disabled', true);
+                spinner.show();
+                
+                // Send to server
+                $.ajax({
+                    url: '/ask',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ query: inputText }),
+                    success: function(response) {
+                        let content = `
+                            <div class="message-header">
+                                <strong>Gordis</strong>
+                                <span class="${response.exito ? 'success' : 'error'}">
+                                    ${response.mensaje}
+                                </span>
+                            </div>
+                        `;
+                        
+                        if (response.resultado !== null && response.resultado !== undefined) {
+                            content += `
+                                <div class="result-display">
+                                    ${formatNumber(response.resultado)}
+                                </div>
+                            `;
+                        }
+                        
+                        content += `<p>${escapeHtml(response.explicacion)}</p>`;
+                        
+                        if (response.codigo_generado) {
+                            content += `
+                                <p><strong>Código generado:</strong></p>
+                                <pre class="code-block">${escapeHtml(response.codigo_generado)}</pre>
+                            `;
+                        }
+                        
+                        content += `
+                            <div class="metadata">
+                                <span>Modo: ${escapeHtml(response.modo)}</span>
+                                <span>Categoría: ${escapeHtml(response.categoria)}</span>
+                            </div>
+                        `;
+                        
+                        addMessage(content, false);
+                    },
+                    error: function(jqXHR) {
+                        let errorMsg = 'Error en la conexión con el servidor';
+                        if (jqXHR.responseJSON && jqXHR.responseJSON.mensaje) {
+                            errorMsg = jqXHR.responseJSON.mensaje;
+                        }
+                        addMessage(`
+                            <div class="message-header error">
+                                <strong>Gordis</strong>
+                                <span class="error">${escapeHtml(errorMsg)}</span>
+                            </div>
+                        `, false);
+                    },
+                    complete: function() {
+                        sendButton.prop('disabled', false);
+                        spinner.hide();
+                        userInput.focus();
+                    }
+                });
+            }
+            
+            // Event handlers
+            sendButton.on('click', sendMessage);
+            userInput.on('keypress', function(e) {
+                if (e.which === 13 && !e.shiftKey) {
+                    sendMessage();
+                    return false;
+                }
+            });
+            
+            // Suggestion chips
+            $('.suggestion-chip').on('click', function() {
+                userInput.val($(this).text());
+                userInput.focus();
+            });
+            
+            // Initial focus
+            userInput.focus();
+            scrollToBottom();
+        });
+    </script>
+</body>
+</html>
